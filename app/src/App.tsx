@@ -72,10 +72,23 @@ export default function App() {
     handleUpdateTasksList(updated);
   };
 
-  // Extract a clean name from the email (e.g. soumiyasunilkumar33@gmail.com -> Soumiya)
-  const userEmail = "soumiyasunilkumar33@gmail.com";
-  const userName = userEmail.split("@")[0].split(/[.0-9_]/)[0];
-  const capitalizedUserName = userName.charAt(0).toUpperCase() + userName.slice(1);
+  // Custom user name state from localStorage (or generic default if not explicitly set)
+  const [customName, setCustomName] = useState<string>(() => {
+    return localStorage.getItem("momentum_user_name") || "";
+  });
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [tempName, setTempName] = useState("");
+
+  const handleSaveName = () => {
+    const trimmed = tempName.trim();
+    setCustomName(trimmed);
+    if (trimmed) {
+      localStorage.setItem("momentum_user_name", trimmed);
+    } else {
+      localStorage.removeItem("momentum_user_name");
+    }
+    setIsEditingName(false);
+  };
 
   // Compute stats
   const pendingTasks = tasks.filter((t) => t.status === "Pending");
@@ -227,9 +240,51 @@ export default function App() {
         {/* Dynamic Top Greeting Area */}
         <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6 mb-6">
           <div className="space-y-1">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tighter text-slate-900">
-              Welcome back, {capitalizedUserName}.
-            </h1>
+            {isEditingName ? (
+              <div className="flex items-center gap-2 py-1 flex-wrap">
+                <input
+                  type="text"
+                  value={tempName}
+                  onChange={(e) => setTempName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSaveName();
+                    if (e.key === "Escape") setIsEditingName(false);
+                  }}
+                  placeholder="Enter your name..."
+                  maxLength={25}
+                  className="rounded-xl border border-indigo-200 px-3 py-1 text-base font-bold text-slate-800 bg-white focus:border-indigo-500 focus:outline-none max-w-[200px]"
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveName}
+                  className="text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition cursor-pointer"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setIsEditingName(false)}
+                  className="text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-1.5 rounded-lg transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-3xl sm:text-4xl font-black tracking-tighter text-slate-900">
+                  {customName ? `Welcome back, ${customName}.` : "Welcome to Momentum AI"}
+                </h1>
+                <button
+                  onClick={() => {
+                    setTempName(customName);
+                    setIsEditingName(true);
+                  }}
+                  className="text-xs font-bold text-slate-400 hover:text-indigo-600 bg-slate-100 hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition ml-2 cursor-pointer self-center"
+                  title={customName ? "Edit name" : "Set your name"}
+                >
+                  {customName ? "Edit" : "Set Name"}
+                </button>
+              </div>
+            )}
             <p className="text-slate-500 font-medium text-sm sm:text-base">
               You have <span className="text-indigo-600 font-bold">{pendingTasks.length} high-impact tasks</span> to tackle today.
             </p>

@@ -1,81 +1,51 @@
 import { Task } from "../types";
 
-const STORAGE_KEY = "momentum_ai_tasks";
-
-const SEED_TASKS: Task[] = [
-  {
-    id: "seed-1",
-    name: "Draft CS201 Machine Learning Proposal",
-    deadline: (() => {
-      const d = new Date();
-      d.setDate(d.getDate() + 2);
-      return d.toISOString().split("T")[0];
-    })(),
-    estimatedHours: 8,
-    category: "Study",
-    status: "Pending",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "seed-2",
-    name: "Refactor API Gateway Endpoints",
-    deadline: (() => {
-      const d = new Date();
-      d.setDate(d.getDate() + 5);
-      return d.toISOString().split("T")[0];
-    })(),
-    estimatedHours: 12,
-    category: "Work",
-    status: "Pending",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "seed-3",
-    name: "Renew Passport & Health Insurance Documents",
-    deadline: (() => {
-      const d = new Date();
-      d.setDate(d.getDate() + 1);
-      return d.toISOString().split("T")[0];
-    })(),
-    estimatedHours: 4,
-    category: "Personal",
-    status: "Pending",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "seed-4",
-    name: "Slide Deck for Client Onboarding",
-    deadline: new Date().toISOString().split("T")[0], // Due Today!
-    estimatedHours: 3,
-    category: "Work",
-    status: "Pending",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "seed-5",
-    name: "Review React 19 Upgrade Guide",
-    deadline: new Date().toISOString().split("T")[0], // Completed Today
-    estimatedHours: 2,
-    category: "Study",
-    status: "Completed",
-    createdAt: new Date().toISOString(),
-  }
-];
+const OLD_STORAGE_KEY = "momentum_ai_tasks";
+const PRIVATE_STORAGE_KEY = "momentum_ai_private_tasks_v2";
 
 export function getLocalTasks(): Task[] {
-  const data = localStorage.getItem(STORAGE_KEY);
-  if (!data) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(SEED_TASKS));
-    return SEED_TASKS;
+  // Check for presence of old demo/seed tasks to automatically clear and migrate
+  const oldData = localStorage.getItem(OLD_STORAGE_KEY);
+  if (oldData) {
+    try {
+      const parsedOld: Task[] = JSON.parse(oldData);
+      // Filter out all hardcoded/seed tasks so we do not migrate them
+      const migratedPrivateTasks = parsedOld.filter(
+        (t) => t && t.id && !t.id.startsWith("seed-")
+      );
+      
+      // Save migrated real user tasks to the new storage format key
+      localStorage.setItem(PRIVATE_STORAGE_KEY, JSON.stringify(migratedPrivateTasks));
+      // Remove old storage key that contained the seed/demo data
+      localStorage.removeItem(OLD_STORAGE_KEY);
+      
+      return migratedPrivateTasks;
+    } catch (err) {
+      // If corrupted, clear and continue
+      localStorage.removeItem(OLD_STORAGE_KEY);
+    }
   }
+
+  const data = localStorage.getItem(PRIVATE_STORAGE_KEY);
+  if (!data) {
+    // New users start with a clean state and empty task list!
+    localStorage.setItem(PRIVATE_STORAGE_KEY, JSON.stringify([]));
+    return [];
+  }
+
   try {
-    return JSON.parse(data);
+    const parsed: Task[] = JSON.parse(data);
+    // Double-guarantee to filter out any seed tasks that might exist
+    return parsed.filter((t) => t && t.id && !t.id.startsWith("seed-"));
   } catch (err) {
-    console.error("Failed to parse local tasks, resetting to seeds", err);
-    return SEED_TASKS;
+    console.error("Failed to parse private local tasks", err);
+    return [];
   }
 }
 
 export function saveLocalTasks(tasks: Task[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  // Only save clean non-demo tasks
+  const cleanTasks = tasks.filter((t) => t && t.id && !t.id.startsWith("seed-"));
+  localStorage.setItem(PRIVATE_STORAGE_KEY, JSON.stringify(cleanTasks));
 }
+
