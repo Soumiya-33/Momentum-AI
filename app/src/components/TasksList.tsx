@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Task } from "../types";
-import { Plus, Edit2, Trash2, Calendar, Clock, CheckCircle2, Circle, AlertCircle, X, Search, Filter, Sparkles } from "lucide-react";
+import { calculateTaskRisk } from "../lib/riskPredictor";
+import { Plus, Edit2, Trash2, Calendar, Clock, CheckCircle2, Circle, AlertCircle, X, Search, Filter, Sparkles, Zap, ShieldAlert } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface TasksListProps {
@@ -10,7 +11,8 @@ interface TasksListProps {
   onDeleteTask: (id: string) => void;
   onToggleStatus: (id: string) => void;
   onSelectTaskForPlan: (task: Task) => void;
-  setActiveTab: (tab: "dashboard" | "tasks" | "planner") => void;
+  setActiveTab: (tab: "dashboard" | "tasks" | "planner" | "reflection" | "focus") => void;
+  onOpenRescuePlan: (task: Task) => void;
 }
 
 export default function TasksList({
@@ -21,6 +23,7 @@ export default function TasksList({
   onToggleStatus,
   onSelectTaskForPlan,
   setActiveTab,
+  onOpenRescuePlan,
 }: TasksListProps) {
   // Filter and Search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -239,22 +242,96 @@ export default function TasksList({
                         Est. Labor: <span className="font-mono text-slate-700">{task.estimatedHours} hrs</span>
                       </span>
                     </div>
+
+                    {/* Deadline Risk Predictor Section */}
+                    {task.status === "Pending" && (() => {
+                      const risk = calculateTaskRisk(task, tasks);
+                      return (
+                        <div className="mt-3.5 pt-3 border-t border-slate-100 flex flex-col gap-2 bg-slate-50/50 p-3 rounded-2xl border border-slate-100">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Deadline Risk:</span>
+                              <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${
+                                risk.level === "Critical" ? "bg-red-50 text-red-600 border-red-200" :
+                                risk.level === "High" ? "bg-orange-50 text-orange-600 border-orange-200" :
+                                risk.level === "Medium" ? "bg-amber-50 text-amber-600 border-amber-200" :
+                                "bg-emerald-50 text-emerald-600 border-emerald-200"
+                              }`}>
+                                {risk.level} ({risk.score}%)
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-mono font-bold">Heuristic Engine</span>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="h-2 w-full bg-slate-200/70 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-500 ${
+                                risk.level === "Critical" ? "bg-red-500 animate-pulse" :
+                                risk.level === "High" ? "bg-orange-500" :
+                                risk.level === "Medium" ? "bg-amber-500" :
+                                "bg-emerald-500"
+                              }`}
+                              style={{ width: `${risk.score}%` }}
+                            />
+                          </div>
+
+                          <div className="space-y-1 mt-0.5">
+                            <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                              <span className="font-bold text-slate-700">Reason:</span> {risk.reason}
+                            </p>
+                            <p className="text-xs text-indigo-700 leading-relaxed font-bold flex items-center gap-1 bg-indigo-50/50 px-2 py-1 rounded-lg border border-indigo-100/50">
+                              <span className="text-[10px] font-black text-indigo-500 uppercase tracking-wider">Rec:</span> {risk.recommendedAction}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 
                 {/* Planning, Editing, & Delete Actions */}
-                <div className="flex items-center gap-2 self-end sm:self-auto pl-9 sm:pl-0">
+                <div className="flex flex-wrap items-center gap-2 self-end sm:self-auto pl-9 sm:pl-0">
                   {task.status === "Pending" && (
-                    <button
-                      onClick={() => {
-                        onSelectTaskForPlan(task);
-                        setActiveTab("planner");
-                      }}
-                      className="flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-indigo-100"
-                    >
-                      <Sparkles className="h-3.5 w-3.5" />
-                      {task.aiPlan ? "View Plan" : "Generate Plan"}
-                    </button>
+                    <>
+                      {(() => {
+                        const risk = calculateTaskRisk(task, tasks);
+                        const isHighRisk = risk.level === "High" || risk.level === "Critical";
+                        if (!isHighRisk) return null;
+                        return (
+                          <button
+                            onClick={() => onOpenRescuePlan(task)}
+                            className="flex items-center gap-1 bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-red-700 shadow-xs mr-1 animate-pulse"
+                            title="Open Urgent Triage Rescue Plan"
+                          >
+                            <ShieldAlert className="h-3.5 w-3.5" />
+                            Rescue Plan
+                          </button>
+                        );
+                      })()}
+
+                      <button
+                        onClick={() => {
+                          onSelectTaskForPlan(task);
+                          setActiveTab("focus");
+                        }}
+                        className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-indigo-700 shadow-xs"
+                      >
+                        <Zap className="h-3.5 w-3.5 fill-current" />
+                        Focus
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          onSelectTaskForPlan(task);
+                          setActiveTab("planner");
+                        }}
+                        className="flex items-center gap-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer border border-indigo-100"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        {task.aiPlan ? "View Plan" : "Plan with AI"}
+                      </button>
+                    </>
                   )}
 
                   <button

@@ -5,13 +5,17 @@ import Navigation from "./components/Navigation";
 import Dashboard from "./components/Dashboard";
 import TasksList from "./components/TasksList";
 import AIPlanner from "./components/AIPlanner";
-import { Flame, CheckSquare, LayoutDashboard, Sparkles, AlertCircle, Plus, Sparkle } from "lucide-react";
+import AIReflection from "./components/AIReflection";
+import FocusMode from "./components/FocusMode";
+import RescuePlanSlideOver from "./components/RescuePlanSlideOver";
+import { Flame, CheckSquare, LayoutDashboard, Sparkles, AlertCircle, Plus, Sparkle, ShieldAlert, Lightbulb, Zap, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"dashboard" | "tasks" | "planner">("dashboard");
+  const [activeTab, setActiveTab] = useState<"dashboard" | "tasks" | "planner" | "reflection" | "focus">("dashboard");
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [rescueTask, setRescueTask] = useState<Task | null>(null);
 
   // Load tasks on mount
   useEffect(() => {
@@ -155,6 +159,35 @@ export default function App() {
               <Sparkles className="w-4 h-4 stroke-[2.5]" />
               AI Planner
             </button>
+
+            <button
+              onClick={() => setActiveTab("focus")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-150 cursor-pointer ${
+                activeTab === "focus"
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              <Zap className="w-4 h-4 stroke-[2.5]" />
+              Focus Space
+              {pendingTasks.length > 0 && (
+                <span className="ml-auto bg-indigo-100 text-indigo-700 font-bold text-[10px] px-1.5 py-0.5 rounded-full border border-indigo-200">
+                  {pendingTasks.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => setActiveTab("reflection")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-150 cursor-pointer ${
+                activeTab === "reflection"
+                  ? "bg-indigo-50 text-indigo-700 border border-indigo-100"
+                  : "text-slate-500 hover:bg-indigo-50/50 hover:text-indigo-700"
+              }`}
+            >
+              <BarChart3 className="w-4 h-4 stroke-[2.5]" />
+              Momentum Snapshot
+            </button>
           </nav>
         </div>
 
@@ -234,6 +267,7 @@ export default function App() {
                   onToggleStatus={handleToggleStatus}
                   onSelectTaskForPlan={setSelectedTask}
                   setActiveTab={setActiveTab}
+                  onOpenRescuePlan={setRescueTask}
                 />
               )}
 
@@ -246,6 +280,7 @@ export default function App() {
                   onToggleStatus={handleToggleStatus}
                   onSelectTaskForPlan={setSelectedTask}
                   setActiveTab={setActiveTab}
+                  onOpenRescuePlan={setRescueTask}
                 />
               )}
 
@@ -257,6 +292,23 @@ export default function App() {
                   onUpdateTask={handleUpdateTask}
                 />
               )}
+
+              {activeTab === "reflection" && (
+                <AIReflection
+                  tasks={tasks}
+                  onSelectTask={setSelectedTask}
+                  setActiveTab={setActiveTab}
+                />
+              )}
+
+              {activeTab === "focus" && (
+                <FocusMode
+                  tasks={tasks}
+                  initialSelectedTask={selectedTask}
+                  onToggleStatus={handleToggleStatus}
+                  onBackToDashboard={() => setActiveTab("dashboard")}
+                />
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -266,6 +318,17 @@ export default function App() {
           <span>Momentum AI Productivity Coaching &copy; 2026. All plans saved locally.</span>
           <span className="font-mono text-[10px]">Powered by Gemini 3.5 Flash server-side APIs</span>
         </footer>
+
+        <RescuePlanSlideOver
+          task={rescueTask}
+          isOpen={!!rescueTask}
+          onClose={() => setRescueTask(null)}
+          onUpdateTask={handleUpdateTask}
+          onStartFocus={(t) => {
+            setSelectedTask(t);
+            setActiveTab("focus");
+          }}
+        />
       </main>
     </div>
   );

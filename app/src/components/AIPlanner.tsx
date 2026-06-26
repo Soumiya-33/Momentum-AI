@@ -19,6 +19,9 @@ export default function AIPlanner({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadingStep, setLoadingStep] = useState(0);
+  const [retryAttempt, setRetryAttempt] = useState(0);
+  const [retryMessage, setRetryMessage] = useState<string | null>(null);
+  const [cloudAIBusy, setCloudAIBusy] = useState(false);
 
   // Loading animation cycle of progress states
   const loadingSteps = [
@@ -50,38 +53,202 @@ export default function AIPlanner({
     }
   }, [selectedTask]);
 
+  const enrichPlanWithLocalLogic = (task: Task, actionSteps: ActionStep[]): AIPlan => {
+    // 1. Calculate days left
+    const todayStr = new Date().toISOString().split("T")[0];
+    const today = new Date(todayStr);
+    const deadlineDate = new Date(task.deadline || todayStr);
+    const diffTime = deadlineDate.getTime() - today.getTime();
+    const daysLeft = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+    // 2. Calculate priority score and urgency level
+    const workloadRatio = task.estimatedHours / daysLeft;
+    let urgencyLevel: 'Low' | 'Medium' | 'High' = 'Medium';
+    let priorityScore = 5;
+
+    if (workloadRatio > 4 || daysLeft <= 1) {
+      urgencyLevel = 'High';
+      priorityScore = Math.min(10, 8 + Math.round(task.estimatedHours / 10));
+    } else if (workloadRatio < 1.5 && daysLeft > 4) {
+      urgencyLevel = 'Low';
+      priorityScore = Math.max(1, 3 + Math.round(task.estimatedHours / 10));
+    } else {
+      urgencyLevel = 'Medium';
+      priorityScore = Math.min(9, 5 + Math.round(task.estimatedHours / 10));
+    }
+
+    // 3. Generate estimated completion time
+    const completionDate = new Date();
+    if (daysLeft > 1) {
+      completionDate.setDate(completionDate.getDate() + Math.max(1, daysLeft - 1));
+    } else {
+      // Completed today
+    }
+    const formattedCompletionDate = completionDate.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric'
+    });
+    const estimatedCompletionTime = daysLeft > 1 
+      ? `Scheduled to complete by ${formattedCompletionDate} (with a 1-day safety buffer before deadline)`
+      : `Scheduled for immediate completion today, ${formattedCompletionDate} (critical deadline)`;
+
+    // 4. Generate local coach rationale / explanation
+    let explanation = "";
+    if (task.category === "Study") {
+      explanation = `With ${daysLeft} day${daysLeft > 1 ? 's' : ''} remaining, prioritizing focused study blocks and active recall will ensure you master this material without last-minute panic.`;
+    } else if (task.category === "Work") {
+      explanation = `This work milestone requires structured delivery. Breaking it down into focused sprints ensures high-quality output while keeping stress levels low.`;
+    } else {
+      explanation = `Personal goals are easily postponed. Setting concrete milestone blocks is the perfect way to build real momentum and get this done.`;
+    }
+
+    // 5. Timeline Generation (distribute action steps across available days)
+    const enrichedSteps = actionSteps.map((step, index) => {
+      const stepDate = new Date();
+      const targetDaysOffset = daysLeft > 1
+        ? Math.min(daysLeft - 1, Math.round((index / Math.max(1, actionSteps.length - 1)) * (daysLeft - 1)))
+        : 0;
+      stepDate.setDate(stepDate.getDate() + targetDaysOffset);
+      
+      const formattedStepDate = stepDate.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric'
+      });
+      
+      let timelineLabel = "";
+      if (daysLeft === 1) {
+        const percent = index / actionSteps.length;
+        if (percent < 0.33) {
+          timelineLabel = "Morning Block (Today)";
+        } else if (percent < 0.66) {
+          timelineLabel = "Afternoon Block (Today)";
+        } else {
+          timelineLabel = "Evening Block (Today)";
+        }
+      } else {
+        const isToday = targetDaysOffset === 0;
+        const isTomorrow = targetDaysOffset === 1;
+        if (isToday) {
+          timelineLabel = `Today (${formattedStepDate})`;
+        } else if (isTomorrow) {
+          timelineLabel = `Tomorrow (${formattedStepDate})`;
+        } else {
+          timelineLabel = `In ${targetDaysOffset} days (${formattedStepDate})`;
+        }
+      }
+
+      return {
+        ...step,
+        timelineLabel
+      };
+    });
+
+    return {
+      priorityScore,
+      urgencyLevel,
+      explanation,
+      estimatedCompletionTime,
+      actionSteps: enrichedSteps,
+      generatedAt: new Date().toISOString()
+    };
+  };
+
   const generateAIPlan = async (task: Task) => {
     setLoading(true);
     setError(null);
+    setRetryAttempt(0);
+    setRetryMessage(null);
+    setCloudAIBusy(false);
+
+    const maxRetries = 3;
+    let attempt = 0;
+    let success = false;
+
+    while (attempt <= maxRetries && !success) {
+      if (attempt > 0) {
+        setRetryAttempt(attempt);
+        setRetryMessage(`Momentum AI is temporarily busy. Retrying... (Attempt ${attempt}/${maxRetries})`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      try {
+        const response = await fetch("/api/plan-task", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ task }),
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw { status: response.status, message: errData.error || "HTTP failure" };
+        }
+
+        const rawPlan = await response.json();
+        
+        const plan: AIPlan = {
+          ...enrichPlanWithLocalLogic(task, rawPlan.actionSteps),
+          cloudAIBusy: rawPlan.cloudAIBusy || false,
+          isFallback: rawPlan.isFallback || false
+        };
+        
+        // Update task with the generated plan
+        onUpdateTask({
+          ...task,
+          aiPlan: plan,
+        });
+
+        // Update the active selected task in state to reflect the new plan
+        onSelectTask({
+          ...task,
+          aiPlan: plan,
+        });
+        success = true;
+      } catch (err: any) {
+        console.warn(`Plan generation attempt ${attempt} failed:`, err);
+        attempt++;
+      }
+    }
+
+    if (!success) {
+      console.warn("All cloud generation retries failed. Automatically generating local backup plan.");
+      setCloudAIBusy(true);
+      await fetchLocalPlanFallback(task);
+    } else {
+      setLoading(false);
+      setRetryAttempt(0);
+      setRetryMessage(null);
+    }
+  };
+
+  const fetchLocalPlanFallback = async (task: Task) => {
+    setLoading(true);
+    setRetryMessage("Structuring offline backup plan...");
     try {
       const response = await fetch("/api/plan-task", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ task }),
+        body: JSON.stringify({ task, forceFallback: true }),
       });
-
       if (!response.ok) {
-        throw new Error("HTTP failure");
+        throw new Error("Local fallback failed");
       }
-
-      const plan: AIPlan = await response.json();
+      const rawPlan = await response.json();
       
-      // Update task with the generated plan
-      onUpdateTask({
-        ...task,
-        aiPlan: plan,
-      });
-
-      // Update the active selected task in state to reflect the new plan
-      onSelectTask({
-        ...task,
-        aiPlan: plan,
-      });
-    } catch (err: any) {
-      console.error("Gemini connection error:", err);
-      setError("Momentum AI is currently busy. Please try again in a few moments.");
+      const plan: AIPlan = {
+        ...enrichPlanWithLocalLogic(task, rawPlan.actionSteps),
+        cloudAIBusy: true,
+        isFallback: true
+      };
+      
+      onUpdateTask({ ...task, aiPlan: plan });
+      onSelectTask({ ...task, aiPlan: plan });
+    } catch (err) {
+      generateLocalPlan(task);
     } finally {
       setLoading(false);
+      setRetryAttempt(0);
+      setRetryMessage(null);
     }
   };
 
@@ -90,33 +257,6 @@ export default function AIPlanner({
     setError(null);
     
     setTimeout(() => {
-      // Heuristic calculations based on deadline and hours
-      const todayStr = new Date().toISOString().split("T")[0];
-      const daysLeft = (() => {
-        const today = new Date(todayStr);
-        const tDate = new Date(task.deadline);
-        const diffTime = tDate.getTime() - today.getTime();
-        return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
-      })();
-
-      const workloadRatio = task.estimatedHours / daysLeft;
-      let urgencyLevel: 'Low' | 'Medium' | 'High' = 'Medium';
-      let priorityScore = 5;
-
-      if (workloadRatio > 4 || daysLeft <= 1) {
-        urgencyLevel = 'High';
-        priorityScore = Math.min(10, 8 + Math.round(task.estimatedHours / 10));
-      } else if (workloadRatio < 1.5 && daysLeft > 4) {
-        urgencyLevel = 'Low';
-        priorityScore = Math.max(1, 3 + Math.round(task.estimatedHours / 10));
-      } else {
-        urgencyLevel = 'Medium';
-        priorityScore = Math.min(9, 5 + Math.round(task.estimatedHours / 10));
-      }
-
-      const explanation = `Due to a temporary high demand on our AI models, the Momentum Coach has drafted this local blueprint using smart defaults. Based on your deadline and estimated labor of ${task.estimatedHours} hours, we structured three optimized milestones to bypass the API queue and maintain your streak.`;
-
-      // Structure action steps
       let actionSteps: ActionStep[] = [];
       const totalHours = task.estimatedHours;
       
@@ -177,14 +317,12 @@ export default function AIPlanner({
       }
 
       const plan: AIPlan = {
-        priorityScore,
-        urgencyLevel,
-        explanation,
-        actionSteps,
-        generatedAt: new Date().toISOString(),
-        isFallback: true
+        ...enrichPlanWithLocalLogic(task, actionSteps),
+        isFallback: true,
+        cloudAIBusy: true
       };
 
+      setCloudAIBusy(true);
       onUpdateTask({ ...task, aiPlan: plan });
       onSelectTask({ ...task, aiPlan: plan });
       setLoading(false);
@@ -339,14 +477,14 @@ export default function AIPlanner({
                 </div>
 
                 <span className="font-mono text-xs font-bold uppercase tracking-widest text-indigo-400">
-                  Momentum Analysis Engines Active
+                  {retryAttempt > 0 ? "Temporary Cloud Stress" : "Momentum Analysis Engines Active"}
                 </span>
                 <h3 className="font-display text-2xl font-bold mt-3">
-                  Generating Coach Directive
+                  {retryAttempt > 0 ? "Retrying Request" : "Generating Coach Directive"}
                 </h3>
 
                 <p className="text-slate-300 text-sm mt-4 max-w-md bg-slate-800/80 px-4 py-3 rounded-2xl border border-slate-700/50 min-h-[50px] flex items-center justify-center">
-                  "{loadingSteps[loadingStep]}"
+                  {retryMessage ? retryMessage : `"${loadingSteps[loadingStep]}"`}
                 </p>
 
                 <p className="text-[11px] text-slate-500 mt-8 max-w-xs">
@@ -458,6 +596,13 @@ export default function AIPlanner({
                     </div>
                   </div>
 
+                  {plan.estimatedCompletionTime && (
+                    <div className="mt-4 px-4 py-2.5 bg-emerald-50/60 border border-emerald-100/40 rounded-2xl flex items-center gap-2.5 text-xs font-semibold text-emerald-800">
+                      <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+                      <span>{plan.estimatedCompletionTime}</span>
+                    </div>
+                  )}
+
                   {/* Coach Directive / Explanation section */}
                   <div className="mt-6 flex gap-4 items-start bg-indigo-50/60 p-5 rounded-2xl border border-indigo-100/50">
                     <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0 text-white font-bold">
@@ -474,11 +619,17 @@ export default function AIPlanner({
                   </div>
 
                   {plan.isFallback && (
-                    <div className="mt-4 p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-start gap-3">
-                      <ShieldAlert className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                      <div className="text-xs text-amber-800">
-                        <p className="font-bold">Offline Backup Blueprint Active</p>
-                        <p className="mt-0.5">This plan was structured locally using smart heuristics because cloud engines are currently busy. You can trigger a live AI re-assessment once ready using the button below!</p>
+                    <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-start gap-3">
+                      <Sparkles className="h-5 w-5 text-indigo-500 flex-shrink-0 mt-0.5 animate-pulse" />
+                      <div className="text-xs text-slate-600 leading-relaxed">
+                        <p className="font-bold text-slate-850">
+                          {cloudAIBusy ? "Cloud AI is busy. Using Smart Fallback Mode." : "Offline Backup Blueprint Active"}
+                        </p>
+                        <p className="mt-0.5">
+                          {cloudAIBusy
+                            ? "We structured this local blueprint using smart defaults so you can keep your momentum without interruption. Feel free to re-assess once cloud engines clear!"
+                            : "A local plan was generated while cloud AI is temporarily unavailable. We structured this local blueprint using smart defaults so you can keep your momentum without interruption. Feel free to re-assess once cloud engines clear!"}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -520,9 +671,16 @@ export default function AIPlanner({
                             <h4 className="font-bold text-slate-800 text-base">
                               {step.title}
                             </h4>
-                            <span className="bg-slate-100 text-slate-700 font-mono text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 self-start sm:self-auto border border-slate-200/50">
-                              <Clock className="h-3 w-3 text-slate-400" /> {step.suggestedHours}h block
-                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">
+                              {step.timelineLabel && (
+                                <span className="bg-indigo-50 text-indigo-700 font-mono text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-indigo-100/50">
+                                  <Calendar className="h-3 w-3 text-indigo-400" /> {step.timelineLabel}
+                                </span>
+                              )}
+                              <span className="bg-slate-100 text-slate-700 font-mono text-[11px] font-bold px-2 py-0.5 rounded-md flex items-center gap-1 border border-slate-200/50">
+                                <Clock className="h-3 w-3 text-slate-400" /> {step.suggestedHours}h block
+                              </span>
+                            </div>
                           </div>
                           <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">
                             {step.description}

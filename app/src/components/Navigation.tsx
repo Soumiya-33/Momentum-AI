@@ -1,10 +1,10 @@
 import React, { useState } from "react";
-import { LayoutDashboard, CheckSquare, Sparkles, Menu, X, Flame } from "lucide-react";
+import { LayoutDashboard, CheckSquare, Sparkles, Menu, X, Flame, ShieldAlert, Lightbulb, Zap, BarChart3 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface NavigationProps {
-  activeTab: "dashboard" | "tasks" | "planner";
-  setActiveTab: (tab: "dashboard" | "tasks" | "planner") => void;
+  activeTab: "dashboard" | "tasks" | "planner" | "reflection" | "focus";
+  setActiveTab: (tab: "dashboard" | "tasks" | "planner" | "reflection" | "focus") => void;
   dueTodayCount: number;
 }
 
@@ -15,6 +15,8 @@ export default function Navigation({ activeTab, setActiveTab, dueTodayCount }: N
     { id: "dashboard" as const, label: "Dashboard", icon: LayoutDashboard },
     { id: "tasks" as const, label: "Tasks", icon: CheckSquare },
     { id: "planner" as const, label: "AI Planner", icon: Sparkles },
+    { id: "focus" as const, label: "Focus Space", icon: Zap },
+    { id: "reflection" as const, label: "Momentum Snapshot", icon: BarChart3 },
   ];
 
   return (
