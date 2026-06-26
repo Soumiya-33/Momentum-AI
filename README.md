@@ -10,8 +10,13 @@
 
 *An AI-powered productivity companion that helps users prioritize, plan, recover, and succeed before deadlines are missed.*
 
-![Status](https://img.shields.io/badge/Status-In%20Development-blue)
-![Progress](https://img.shields.io/badge/Progress-40%25-orange)
+![Status](https://img.shields.io/badge/Status-Deployed-success)
+![Progress](https://img.shields.io/badge/Progress-Completed-brightgreen)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![Express](https://img.shields.io/badge/Express.js-Backend-black?logo=express)
+![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4)
+![License](https://img.shields.io/badge/License-MIT-green)
 ![AI](https://img.shields.io/badge/Powered%20By-Gemini-blueviolet)
 ![Hackathon](https://img.shields.io/badge/Hackathon-Project-success)
 
