@@ -1,6 +1,10 @@
 <div align="center">
 
+
 # 🚀 Momentum AI
+
+**🌐 Live Demo:** https://your-app.run.app
+
 
 ### Transform Deadlines Into Momentum
 
@@ -49,7 +53,7 @@ Users need an intelligent system that can:
 | 🔄 Smart Replanning | Adjusts schedules when users fall behind |
 | ⚠️ Risk Prediction | Detects tasks likely to miss deadlines |
 | 🚨 Emergency Rescue Mode | Creates last-minute recovery strategies |
-| 💡 AI Productivity Coach | Provides insights, reflections, and coaching |
+| focus mode | creates an environment for optimal focus
 
 ---
 
@@ -70,7 +74,7 @@ Users need an intelligent system that can:
       ↓
 🔄 Smart Replanning
       ↓
-💡 Reflection & Coaching
+focus mode
 ```
 
 ---
@@ -114,11 +118,6 @@ Users need an intelligent system that can:
 
 ## 📊 Project Progress
 
-### Overall Progress
-
-```text
-████░░░░░░ 40%
-```
 
 ### ✅ Completed
 
@@ -130,18 +129,14 @@ Users need an intelligent system that can:
 - Documentation
 - Prompt Engineering
 
-### 🔄 In Progress
-
-- AI Task Prioritization
-- AI Action Planner
-- Progress Tracking
 
 ### ⏳ Coming Next
 
 - Smart Replanning
 - Deadline Risk Predictor
 - Emergency Rescue Mode
-- AI Reflection & Productivity Coach
+- momentum snap shot
+- focus mode
 
 ---
 
