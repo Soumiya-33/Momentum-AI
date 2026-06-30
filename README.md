@@ -198,10 +198,6 @@ Momentum AI helps users transition from reactive task management to proactive pl
 
 ![Focus Mode](docs/images/focus.png)
 
-### Rescue Battleplan
-
-![Rescue Battleplan](docs/images/rescue-plan.png)
-
 
 # 🙏 Acknowledgements
 
