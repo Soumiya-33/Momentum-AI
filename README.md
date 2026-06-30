@@ -186,22 +186,22 @@ Momentum AI helps users transition from reactive task management to proactive pl
 
 # 📸 Screenshots
 
-
-
 ### Dashboard
 
-![alt text](<Screenshot 2026-06-30 145729.png>)
+![Dashboard](docs/images/dashboard.png)
 
 ### AI Planner
 
-![alt text](<Screenshot 2026-06-30 145959.png>)
+![AI Planner](docs/images/ai-planner.png)
 
 ### Focus Mode
 
+![Focus Mode](docs/images/focus.png)
 
-![alt text](<Screenshot 2026-06-30 145927.png>)
+### Rescue Battleplan
 
----
+![Rescue Battleplan](docs/images/rescue-plan.png)
+
 
 # 🙏 Acknowledgements
 
@@ -210,3 +210,4 @@ Built as part of the **VIBE2SKILL**, leveraging **Google AI Studio** and the **G
 ---
 
 ## ⭐ If you found this project interesting, consider giving it a star!
+
