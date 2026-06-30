@@ -11,7 +11,6 @@
 ![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4)
 
 🌐 **Live Demo:** https://momentum-ai-257250470541.asia-southeast1.run.app/
-
 ---
 
 ## 📖 Overview
@@ -179,8 +178,6 @@ Momentum-AI/
 └── .gitignore
 ```
 
----
-
 # 🌍 Project Impact
 
 Momentum AI helps users transition from reactive task management to proactive planning. By combining AI-powered guidance, deadline risk analysis, and productivity-focused design, it empowers users to organize their work more effectively, reduce last-minute stress, and build consistent work habits.
@@ -190,22 +187,25 @@ Momentum AI helps users transition from reactive task management to proactive pl
 # 📸 Screenshots
 
 
+
 ### Dashboard
 
-![alt text](image.png)
+![alt text](<Screenshot 2026-06-30 145729.png>)
 
 ### AI Planner
 
-![alt text](image-3.png)
+![alt text](<Screenshot 2026-06-30 145959.png>)
 
 ### Focus Mode
 
-![alt text](image-2.png)
+
+![alt text](<Screenshot 2026-06-30 145927.png>)
+
 ---
 
 # 🙏 Acknowledgements
 
-Built as part of the **VIBE2SHIP**, leveraging **Google AI Studio** and the **Gemini API** for intelligent task planning and productivity assistance.
+Built as part of the **VIBE2SKILL**, leveraging **Google AI Studio** and the **Gemini API** for intelligent task planning and productivity assistance.
 
 ---
 
