@@ -1,170 +1,212 @@
-<div align="center">
-
 # 🚀 Momentum AI
 
-### Transform Deadlines Into Momentum
+> **Transform deadlines into momentum through AI-powered planning, intelligent prioritization, and productivity coaching.**
 
-*An AI-powered productivity companion that helps users prioritize, plan, recover, and succeed before deadlines are missed.*
+![Status](https://img.shields.io/badge/Status-Deployed-success)
+![Progress](https://img.shields.io/badge/Progress-Completed-brightgreen)
+![Hackathon](https://img.shields.io/badge/Hackathon-Google%20AI%20Build-blue)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
+![Express](https://img.shields.io/badge/Express.js-Backend-black?logo=express)
+![Gemini](https://img.shields.io/badge/AI-Google%20Gemini-4285F4)
 
-![Status](https://img.shields.io/badge/Status-In%20Development-blue)
-![Progress](https://img.shields.io/badge/Progress-40%25-orange)
-![AI](https://img.shields.io/badge/Powered%20By-Gemini-blueviolet)
-![Hackathon](https://img.shields.io/badge/Hackathon-Project-success)
-
-</div>
-
----
-
-## ⚡ The Problem
-
-Most productivity apps simply remind users about deadlines.
-
-When workloads become overwhelming, reminders aren't enough.
-
-Users need an intelligent system that can:
-
-✅ Prioritize what matters most
-
-✅ Predict deadline risks
-
-✅ Adapt when plans fail
-
-✅ Guide recovery before it's too late
+🌐 **Live Demo:** https://momentum-ai-257250470541.asia-southeast1.run.app/
 
 ---
 
-## 💡 The Solution
+## 📖 Overview
 
-**Momentum AI** acts as an intelligent productivity coach that continuously analyzes tasks, generates action plans, predicts risks, and helps users stay ahead of deadlines.
+Managing deadlines is more than keeping a checklist—it's about knowing **what to do, when to do it, and how to recover when things don't go as planned.**
 
----
+Momentum AI is an AI-powered productivity web application that helps students, professionals, and freelancers organize their work through intelligent task planning, deadline risk prediction, and personalized execution strategies.
 
-## 🎯 Core Features
-
-| Feature | Description |
-|----------|-------------|
-| 🧠 AI Task Prioritization | Ranks tasks based on urgency, importance, effort, and deadlines |
-| 📅 AI Action Planner | Creates realistic execution schedules |
-| 📈 Progress Tracking | Monitors task completion and productivity |
-| 🔄 Smart Replanning | Adjusts schedules when users fall behind |
-| ⚠️ Risk Prediction | Detects tasks likely to miss deadlines |
-| 🚨 Emergency Rescue Mode | Creates last-minute recovery strategies |
-| 💡 AI Productivity Coach | Provides insights, reflections, and coaching |
+Unlike traditional to-do applications, Momentum AI doesn't just store tasks—it analyzes them and provides actionable guidance to help users stay productive and avoid last-minute stress.
 
 ---
 
-## 🔄 User Journey
+# ✨ Why Momentum AI?
+
+| Problem | Momentum AI Solution |
+|----------|----------------------|
+| Too many tasks to manage | 🤖 AI Task Planner |
+| Unsure what to prioritize | ⚠️ Risk Prediction |
+| Falling behind schedule | 🚨 Rescue Battleplan |
+| Easily distracted | 🎯 Focus Mode |
+| No visibility into progress | 📊 Momentum Snapshot |
+
+---
+
+# 🌟 Key Features
+
+### 🤖 AI Task Planner
+Generate structured execution plans using Google's Gemini AI based on task priority, deadline, category, and estimated effort.
+
+---
+
+### ⚠️ Smart Risk Prediction
+Identify tasks most likely to miss their deadlines and prioritize them before they become urgent.
+
+---
+
+### 🚨 Rescue Battleplan
+Receive practical recovery strategies when deadlines are approaching or tasks become high-risk.
+
+---
+
+### 🎯 Focus Mode
+Reduce distractions by highlighting a single priority task and guiding users through focused execution.
+
+---
+
+### 📊 Momentum Snapshot
+Track overall productivity with completion statistics and task progress at a glance.
+
+---
+
+### 💾 Local Data Storage
+Tasks are stored securely in the user's browser using Local Storage, ensuring privacy without requiring authentication.
+
+---
+
+### 📱 Responsive Interface
+Designed to provide a seamless experience across desktop and mobile devices.
+
+---
+
+# 🛠 Tech Stack
+
+| Layer | Technology |
+|--------|------------|
+| Frontend | React + TypeScript + Vite |
+| Backend | Node.js + Express.js |
+| AI | Google Gemini API |
+| Storage | Browser Local Storage |
+| Deployment | Google AI Studio |
+| Version Control | Git & GitHub |
+
+---
+
+# 🏗 System Architecture
 
 ```text
-📝 Add Tasks
-      ↓
-🧠 AI Analysis
-      ↓
-📌 Prioritization
-      ↓
-📅 Action Planning
-      ↓
-📈 Progress Tracking
-      ↓
-⚠️ Risk Detection
-      ↓
-🔄 Smart Replanning
-      ↓
-💡 Reflection & Coaching
+                 User
+                   │
+                   ▼
+          React + TypeScript
+                   │
+           HTTP API Requests
+                   │
+                   ▼
+          Express.js Backend
+                   │
+        Gemini API Integration
+                   │
+        ┌──────────┴──────────┐
+        ▼                     ▼
+ AI Execution Plan      Risk Analysis
+        │                     │
+        └──────────┬──────────┘
+                   ▼
+            Browser Interface
 ```
 
 ---
 
-## 🏗 Architecture
+# 🔄 Application Workflow
 
 ```text
-          User
-            │
-            ▼
-     🚀 Momentum AI
-            │
-            ▼
-   🤖 Gemini (Google AI Studio)
-            │
-            ▼
-   Task Analysis & Intelligence
-            │
-            ▼
- Actionable Recommendations
+Create Task
+     │
+     ▼
+Risk Analysis
+     │
+     ▼
+Gemini AI Planning
+     │
+     ▼
+Execution Strategy
+     │
+     ▼
+Task Tracking
+     │
+     ▼
+Momentum Dashboard
 ```
 
 ---
 
-## 🛠 Tech Stack
+# 💡 Engineering Decisions
 
-### AI
+Some important design choices made during development:
 
-- 🤖 Google AI Studio
-- ✨ Gemini
-
-### Frontend
-
-- ⚛️ React
-
-### Development
-
-- 🐙 GitHub
+- Modular React component architecture for maintainability.
+- Express.js REST API to separate frontend and AI logic.
+- Gemini Flash model selected for lower latency.
+- Browser Local Storage used to preserve user privacy.
+- Offline fallback when AI services are temporarily unavailable.
+- Timeout and retry mechanisms for improved reliability.
+- Responsive layout optimized for desktop and mobile devices.
 
 ---
 
-## 📊 Project Progress
+# ⚡ Challenges & Solutions
 
-### Overall Progress
+| Challenge | Solution |
+|------------|----------|
+| Gemini API response delays | Implemented timeout handling and offline fallback |
+| Shared test data after deployment | Isolated browser Local Storage for each user |
+| High AI response latency | Optimized prompts and switched to Gemini Flash |
+| Dashboard becoming cluttered | Redesigned with a cleaner and more focused UI |
+
+---
+
+# 📂 Project Structure
 
 ```text
-████░░░░░░ 40%
+Momentum-AI/
+│
+├── app/
+│   ├── src/
+│   ├── server.ts
+│   ├── package.json
+│   └── ...
+│
+├── docs/
+│   ├── project-summary.md
+│   └── ai-development-log.md
+│
+├── README.md
+└── .gitignore
 ```
 
-### ✅ Completed
+---
 
-- Project Planning
-- User Flow Design
-- Dashboard Page
-- Task Management Page
-- AI Workspace Page
-- Documentation
-- Prompt Engineering
+# 🌍 Project Impact
 
-### 🔄 In Progress
-
-- AI Task Prioritization
-- AI Action Planner
-- Progress Tracking
-
-### ⏳ Coming Next
-
-- Smart Replanning
-- Deadline Risk Predictor
-- Emergency Rescue Mode
-- AI Reflection & Productivity Coach
+Momentum AI helps users transition from reactive task management to proactive planning. By combining AI-powered guidance, deadline risk analysis, and productivity-focused design, it empowers users to organize their work more effectively, reduce last-minute stress, and build consistent work habits.
 
 ---
 
-## 👥 Target Users
+# 📸 Screenshots
 
-🎓 Students
 
-💼 Professionals
+### Dashboard
 
-🚀 Freelancers
+![alt text](image.png)
+
+### AI Planner
+
+![alt text](image-3.png)
+
+### Focus Mode
+
+![alt text](image-2.png)
+---
+
+# 🙏 Acknowledgements
+
+Built as part of the **VIBE2SHIP**, leveraging **Google AI Studio** and the **Gemini API** for intelligent task planning and productivity assistance.
 
 ---
 
-## 🌟 Vision
-
-Momentum AI goes beyond reminders.
-
-Our vision is to create an intelligent productivity companion that helps users make better decisions, adapt to setbacks, and consistently achieve their goals before deadlines become emergencies.
-
----
-
-<div align="center">
-
-### 🚀 Building the Future of Productivity with AI
-
-</div>
+## ⭐ If you found this project interesting, consider giving it a star!
